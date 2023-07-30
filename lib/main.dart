@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import 'package:shopping_list/widgets/grocery_list.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -22,12 +25,7 @@ class MyApp extends StatelessWidget {
         ),
         scaffoldBackgroundColor: const Color.fromARGB(255, 50, 58, 60),
       ),
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Flutter Groceries'),
-        ),
-        body: const Column(),
-      ),
+      home: const GroceryList(),
     );
   }
 }
