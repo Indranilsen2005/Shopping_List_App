@@ -24,7 +24,7 @@ class _GroceryListState extends State<GroceryList> {
     _loadItems();
   }
 
-  void addItem() async {
+  void _addItem() async {
     final newItem = await Navigator.of(context).push<GroceryItem>(
       MaterialPageRoute(builder: (ctx) {
         return const NewItem();
@@ -36,6 +36,39 @@ class _GroceryListState extends State<GroceryList> {
       _groceryItems.add(newItem);
     });
   }
+
+  void _removeItem(GroceryItem item) {
+    setState(() {
+      _groceryItems.remove(item);
+    });
+
+    final url = Uri.https(
+      'flutter-shopping-list-ap-a21d3-default-rtdb.firebaseio.com',
+      'shopping-list/${item.id}.json',
+    );
+    http.delete(url);
+  }
+
+  // This function is not working 
+  // void _undoDelete(GroceryItem item) {
+  //   final url = Uri.https(
+  //     'flutter-shopping-list-ap-a21d3-default-rtdb.firebaseio.com',
+  //     'shopping-list.json',
+  //   );
+  //   http.post(
+  //     url,
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //     },
+  //     body: json.encode(
+  //       {
+  //         'name': item.name,
+  //         'quantity': item.quantity,
+  //         'category': item.category,
+  //       },
+  //     ),
+  //   );
+  // }
 
   void _loadItems() async {
     final url = Uri.https(
@@ -63,9 +96,7 @@ class _GroceryListState extends State<GroceryList> {
     }
     setState(() {
       _groceryItems = loadedItems;
-      setState(() {
-        _isLoading = false;
-      });
+      _isLoading = false;
     });
   }
 
@@ -76,13 +107,10 @@ class _GroceryListState extends State<GroceryList> {
       padding: const EdgeInsets.only(top: 15, left: 5),
       itemBuilder: (context, index) {
         final item = _groceryItems[index];
-
         return Dismissible(
           key: ValueKey(item),
           onDismissed: (direction) {
-            setState(() {
-              _groceryItems.removeAt(index);
-            });
+            _removeItem(item);
             ScaffoldMessenger.of(context).clearSnackBars();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -138,7 +166,7 @@ class _GroceryListState extends State<GroceryList> {
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
-              onPressed: addItem,
+              onPressed: _addItem,
               icon: const Icon(Icons.add),
               label: const Text('Add Item'),
             ),
@@ -147,21 +175,23 @@ class _GroceryListState extends State<GroceryList> {
       );
     }
 
+    if (_isLoading) {
+      screenContent = const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Your Groceries'),
         actions: [
           IconButton(
-            onPressed: addItem,
+            onPressed: _addItem,
             icon: const Icon(Icons.add),
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
-          : screenContent,
+      body: screenContent,
     );
   }
 }
