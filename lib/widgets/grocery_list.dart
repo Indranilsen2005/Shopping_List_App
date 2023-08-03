@@ -17,7 +17,7 @@ class GroceryList extends StatefulWidget {
 class _GroceryListState extends State<GroceryList> {
   var _isLoading = true;
   List<GroceryItem> _groceryItems = [];
-  String? _error;
+  bool _error = false;
 
   @override
   void initState() {
@@ -88,10 +88,9 @@ class _GroceryListState extends State<GroceryList> {
         _groceryItems = loadedItems;
         _isLoading = false;
       });
-
     } catch (error) {
       setState(() {
-        _error = 'Something went wrong! Please try again later.';
+        _error = true;
       });
     }
   }
@@ -171,18 +170,33 @@ class _GroceryListState extends State<GroceryList> {
       );
     }
 
-    if (_error != null) {
+    if (_error) {
       screenContent = Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              _error!,
-              style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                    color: Theme.of(context).colorScheme.onBackground,
-                  ),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(15),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Oops!\nSomething went wrong.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white.withOpacity(0.5),
+                ),
+              ),
+              const SizedBox(height: 50),
+              Text(
+                'We\'re having some trouble. Please check your internet connection and try again later.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.white.withOpacity(0.8),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
