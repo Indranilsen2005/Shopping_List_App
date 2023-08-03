@@ -15,8 +15,9 @@ class GroceryList extends StatefulWidget {
 }
 
 class _GroceryListState extends State<GroceryList> {
-  List<GroceryItem> _groceryItems = [];
   var _isLoading = true;
+  List<GroceryItem> _groceryItems = [];
+  String? _error;
 
   @override
   void initState() {
@@ -49,33 +50,25 @@ class _GroceryListState extends State<GroceryList> {
     http.delete(url);
   }
 
-  // This function is not working 
-  // void _undoDelete(GroceryItem item) {
-  //   final url = Uri.https(
-  //     'flutter-shopping-list-ap-a21d3-default-rtdb.firebaseio.com',
-  //     'shopping-list.json',
-  //   );
-  //   http.post(
-  //     url,
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //     },
-  //     body: json.encode(
-  //       {
-  //         'name': item.name,
-  //         'quantity': item.quantity,
-  //         'category': item.category,
-  //       },
-  //     ),
-  //   );
-  // }
-
   void _loadItems() async {
     final url = Uri.https(
       'flutter-shopping-list-ap-a21d3-default-rtdb.firebaseio.com',
       'shopping-list.json',
     );
     final response = await http.get(url);
+
+    if (response.body == 'null') {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+
+    if (response.statusCode >= 400) {
+      setState(() {
+        _error = 'Unable to fetch data! Please try again later.';
+      });
+    }
+
     final Map<String, dynamic> data = json.decode(response.body);
     List<GroceryItem> loadedItems = [];
     for (final item in data.entries) {
@@ -113,15 +106,9 @@ class _GroceryListState extends State<GroceryList> {
             _removeItem(item);
             ScaffoldMessenger.of(context).clearSnackBars();
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text('Item removed from shopping list'),
-                duration: const Duration(seconds: 3),
-                action: SnackBarAction(
-                  label: 'Undo',
-                  onPressed: () => setState(() {
-                    _groceryItems.insert(index, item);
-                  }),
-                ),
+              const SnackBar(
+                content: Text('Item removed from shopping list'),
+                duration: Duration(seconds: 3),
               ),
             );
           },
@@ -178,6 +165,22 @@ class _GroceryListState extends State<GroceryList> {
     if (_isLoading) {
       screenContent = const Center(
         child: CircularProgressIndicator(),
+      );
+    }
+
+    if (_error != null) {
+      screenContent = Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _error!,
+              style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                    color: Theme.of(context).colorScheme.onBackground,
+                  ),
+            ),
+          ],
+        ),
       );
     }
 
